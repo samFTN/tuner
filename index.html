@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accordeur — Guitarisation™</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:           #f5f5f3;
+      --card:         #ffffff;
+      --accent:       #d4a017;
+      --accent-soft:  #fef9e3;
+      --gold:         #e8c23a;
+      --gold-hover:   #d4af30;
+      --dark:         #111111;
+      --text:         #1a1a1a;
+      --muted:        #9ca3af;
+      --muted2:       #6b7280;
+      --border:       #e8e8e4;
+      --border2:      #f0f0ec;
+      --shadow:       0 60px 120px rgba(0,0,0,0.10), 0 20px 48px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.04);
+      --r:    22px;
+      --r-sm: 11px;
+      --r-xs:  8px;
+      --green: #22c55e;
+      --red:   #ef4444;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      background-image: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,255,255,0.85) 0%, transparent 70%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 20px 16px;
+      color: var(--text);
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes flipFromLeft {
+      from { opacity: 0; transform: perspective(900px) translateX(-70px) rotateY(-18deg); }
+      to   { opacity: 1; transform: perspective(900px) translateX(0) rotateY(0deg); }
+    }
+    @keyframes pulseGreen {
+      0%   { box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
+      70%  { box-shadow: 0 0 0 12px rgba(34,197,94,0); }
+      100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+    }
+    .anim-header { animation: fadeIn       0.45s ease                              both; }
+    .anim-card   { animation: flipFromLeft 0.65s cubic-bezier(0.08, 0.92, 0.18, 1) 0.05s both; }
+
+    /* ─── HEADER ─── */
+    header {
+      width: 100%; max-width: 760px;
+      padding: 10px 0 18px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      position: relative; z-index: 10;
+    }
+    .header-byline {
+      font-size: 12px; font-weight: 500;
+      color: var(--muted2); letter-spacing: 0.2px;
+      justify-self: start;
+    }
+    .header-logo { justify-self: center; }
+    .header-logo img { height: 42px; width: auto; display: block; }
+    .header-logo-text {
+      font-size: 22px; font-weight: 900;
+      letter-spacing: -0.5px; color: var(--dark); line-height: 1;
+    }
+    .header-logo-text em { font-style: normal; color: var(--accent); }
+    .header-cta { justify-self: end; }
+
+    .btn-school {
+      display: inline-block; padding: 10px 18px;
+      border-radius: 10px; background: var(--gold);
+      color: #fff; font-family: inherit; font-size: 13px; font-weight: 700;
+      text-decoration: none; border: none; cursor: pointer; white-space: nowrap;
+      box-shadow: 0 4px 16px rgba(232,194,58,0.35);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s;
+    }
+    .btn-school:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(232,194,58,0.45); background: var(--gold-hover); }
+    .btn-school:active { transform: translateY(0); }
+
+    .hamburger {
+      display: none; flex-direction: column; justify-content: center;
+      gap: 5px; width: 36px; height: 36px; padding: 6px;
+      background: none; border: 1.5px solid var(--border);
+      border-radius: var(--r-xs); cursor: pointer; position: relative;
+    }
+    .hamburger span { display: block; height: 2px; border-radius: 2px; background: var(--dark); transition: background 0.15s; }
+    .hamburger:hover span { background: var(--accent); }
+    .nav-dropdown {
+      display: none; position: absolute; top: calc(100% + 8px); right: 0;
+      background: white; border: 1.5px solid var(--border);
+      border-radius: var(--r-sm); box-shadow: 0 12px 36px rgba(0,0,0,0.12);
+      min-width: 220px; overflow: hidden; z-index: 100;
+    }
+    .nav-dropdown.open { display: block; }
+    .nav-dropdown a {
+      display: block; padding: 14px 18px; font-size: 13px; font-weight: 600;
+      color: var(--text); text-decoration: none; transition: background 0.1s;
+    }
+    .nav-dropdown a:hover { background: var(--border2); }
+    .nav-dropdown a::before { content: '→ '; color: var(--gold); }
+
+    /* ─── CARD ─── */
+    .card {
+      width: 100%; max-width: 480px;
+      background: var(--card);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      padding: 32px 28px 28px;
+      display: flex; flex-direction: column; gap: 28px;
+    }
+
+    /* ─── STATUS PILL ─── */
+    .status-bar {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 12px; border-radius: 20px;
+      font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+      background: var(--border2); color: var(--muted2);
+      transition: background 0.3s, color 0.3s;
+    }
+    .status-pill.listening { background: var(--accent-soft); color: var(--accent); }
+    .status-pill.in-tune   { background: #dcfce7; color: #16a34a; animation: pulseGreen 1s ease-out; }
+    .status-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--muted); transition: background 0.3s;
+    }
+    .status-pill.listening .status-dot { background: var(--accent); }
+    .status-pill.in-tune   .status-dot { background: #16a34a; }
+
+    /* ─── MAIN NOTE DISPLAY ─── */
+    .note-display {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+    }
+    .note-main {
+      display: flex; align-items: flex-start; gap: 6px; line-height: 1;
+    }
+    .note-name {
+      font-size: 92px; font-weight: 900; letter-spacing: -5px;
+      color: var(--dark); font-variant-numeric: tabular-nums;
+      min-width: 80px; text-align: center;
+      transition: color 0.3s;
+    }
+    .note-name.in-tune { color: var(--green); }
+    .note-name.empty   { color: var(--border); }
+    .note-octave {
+      font-size: 36px; font-weight: 700; color: var(--muted2);
+      margin-top: 14px; min-width: 28px;
+    }
+    .note-freq {
+      font-size: 13px; font-weight: 500; color: var(--muted);
+      letter-spacing: 0.2px;
+    }
+
+    /* ─── TUNING INDICATOR ─── */
+    .tuner-indicator {
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+    }
+    .tuner-labels {
+      width: 100%; display: flex; justify-content: space-between; align-items: center;
+      padding: 0 2px;
+    }
+    .tuner-label {
+      font-size: 13px; font-weight: 700; color: var(--muted2);
+      width: 32px;
+    }
+    .tuner-label.right { text-align: right; }
+    .cents-display {
+      font-size: 13px; font-weight: 700; color: var(--muted2);
+      letter-spacing: 0.5px; min-width: 60px; text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .tuner-track-wrap {
+      width: 100%; position: relative; padding: 8px 0;
+    }
+    .tuner-track {
+      width: 100%; height: 10px; border-radius: 5px;
+      background: linear-gradient(
+        to right,
+        #ef4444 0%,
+        #f97316 25%,
+        #facc15 40%,
+        #22c55e 46%,
+        #22c55e 54%,
+        #facc15 60%,
+        #f97316 75%,
+        #ef4444 100%
+      );
+      position: relative;
+    }
+    /* Center tick */
+    .tuner-track::before {
+      content: '';
+      position: absolute; top: -5px; left: calc(50% - 1px);
+      width: 2px; height: 20px;
+      background: var(--dark); border-radius: 1px; opacity: 0.25;
+    }
+    /* Needle */
+    .tuner-needle {
+      position: absolute;
+      top: -8px; left: 50%;
+      transform: translateX(-50%);
+      width: 3px; height: 26px;
+      background: var(--dark);
+      border-radius: 2px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      transition: left 0.12s ease, background 0.3s;
+    }
+    .tuner-needle::after {
+      content: '';
+      position: absolute; bottom: -5px; left: 50%;
+      transform: translateX(-50%);
+      width: 11px; height: 11px;
+      border-radius: 50%;
+      background: inherit;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+    .tuner-needle.in-tune { background: var(--green); }
+    .tuner-needle.inactive { opacity: 0.15; }
+
+    /* ─── STRING REFERENCE ─── */
+    .strings-section { display: flex; flex-direction: column; gap: 10px; }
+    .strings-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--muted); text-align: center;
+    }
+    .strings-grid {
+      display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px;
+    }
+    .string-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      padding: 10px 6px; border-radius: var(--r-sm);
+      background: var(--border2); border: 1.5px solid var(--border);
+      cursor: pointer; font-family: inherit;
+      transition: background 0.12s, border-color 0.12s, transform 0.08s;
+    }
+    .string-btn:hover { background: var(--accent-soft); border-color: var(--accent); transform: translateY(-1px); }
+    .string-btn:active { transform: translateY(0); }
+    .string-btn.playing { background: var(--accent-soft); border-color: var(--accent); }
+    .string-note { font-size: 14px; font-weight: 800; color: var(--dark); }
+    .string-octave { font-size: 10px; font-weight: 600; color: var(--muted2); }
+    .string-num {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+      color: var(--muted); text-transform: uppercase;
+    }
+
+    /* ─── ACTIONS ─── */
+    .actions { display: flex; justify-content: center; }
+    .btn-start {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 14px 32px; border-radius: 50px;
+      background: var(--dark); color: white;
+      font-family: inherit; font-size: 14px; font-weight: 700;
+      border: none; cursor: pointer;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+      transition: transform 0.12s, box-shadow 0.12s, background 0.15s;
+    }
+    .btn-start:hover { transform: scale(1.04); box-shadow: 0 14px 36px rgba(0,0,0,0.22); }
+    .btn-start:active { transform: scale(0.98); }
+    .btn-start.active { background: var(--red); box-shadow: 0 8px 28px rgba(239,68,68,0.3); }
+    .btn-start svg { width: 18px; height: 18px; }
+
+    /* ─── ERROR MESSAGE ─── */
+    .error-msg {
+      display: none; align-items: center; gap: 8px;
+      padding: 10px 14px; border-radius: var(--r-xs);
+      background: #fef2f2; border: 1.5px solid #fecaca;
+      font-size: 12px; font-weight: 600; color: #b91c1c;
+    }
+    .error-msg.visible { display: flex; }
+
+    /* ─── FOOTER ─── */
+    footer {
+      width: 100%; max-width: 760px;
+      margin-top: 20px; padding: 12px 0 6px;
+      text-align: center;
+      font-size: 11px; font-weight: 500; color: var(--muted);
+      border-top: 1px solid var(--border2);
+    }
+
+    /* ─── HELP BUTTON ─── */
+    .help-btn {
+      position: fixed; bottom: 24px; right: 24px;
+      width: 44px; height: 44px; border-radius: 50%;
+      background: var(--dark); color: white;
+      font-size: 20px; font-weight: 700; font-family: inherit;
+      border: none; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.22);
+      transition: background 0.15s, transform 0.12s;
+      z-index: 200; line-height: 1;
+    }
+    .help-btn:hover { background: var(--accent); transform: scale(1.08); }
+    .help-btn.open  { background: var(--accent); }
+    .help-panel {
+      display: none; position: fixed;
+      bottom: 78px; right: 24px; width: 300px;
+      background: white; border: 1.5px solid var(--border);
+      border-radius: var(--r);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.14), 0 4px 16px rgba(0,0,0,0.08);
+      z-index: 199; overflow: hidden;
+    }
+    .help-panel.open { display: block; }
+    .help-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px 12px; border-bottom: 1px solid var(--border2);
+    }
+    .help-title { font-size: 13px; font-weight: 700; color: var(--dark); }
+    .help-close {
+      background: none; border: none; cursor: pointer;
+      font-size: 14px; color: var(--muted2); line-height: 1;
+      padding: 2px 4px; border-radius: 4px; transition: color 0.1s, background 0.1s;
+    }
+    .help-close:hover { color: var(--dark); background: var(--border2); }
+    .help-body {
+      padding: 14px 16px 16px;
+      font-size: 13px; line-height: 1.6; color: var(--text);
+      max-height: 340px; overflow-y: auto;
+    }
+    .help-body p { margin-bottom: 10px; }
+    .help-body p:last-child { margin-bottom: 0; }
+    .help-body strong { color: var(--dark); font-weight: 700; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 640px) {
+      header { padding: 10px 0 14px; }
+      .header-logo img { height: 32px; }
+      .header-byline { font-size: 10px; }
+      .btn-school { display: none; }
+      .hamburger  { display: flex; }
+      .card { padding: 24px 20px 22px; gap: 22px; }
+      .note-name { font-size: 76px; letter-spacing: -4px; }
+      .note-octave { font-size: 30px; margin-top: 10px; }
+      .help-panel { width: calc(100vw - 32px); right: 16px; bottom: 72px; }
+      .help-btn   { bottom: 16px; right: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="anim-header">
+    <div class="header-byline">par Samuel Ferton</div>
+    <div class="header-logo">
+      <img src="Logo Guitarisation.png" alt="Guitarisation™ — L'École de Guitare 2.0"
+           onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      <div class="header-logo-text" style="display:none">Guitar<em>isation</em>™</div>
+    </div>
+    <div class="header-cta" style="position:relative;">
+      <a class="btn-school" href="https://guitarschool.guitarisation.fr/login"
+         target="_blank" rel="noopener">
+        Aller sur l'école Guitarisation™
+      </a>
+      <button class="hamburger" id="hamburgerBtn" onclick="toggleNav()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav-dropdown" id="navDropdown">
+        <a href="https://guitarschool.guitarisation.fr/login" target="_blank" rel="noopener">
+          Aller sur l'école Guitarisation™
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- CARD -->
+  <main class="card anim-card">
+
+    <!-- STATUS -->
+    <div class="status-bar">
+      <div class="status-pill" id="statusPill">
+        <div class="status-dot"></div>
+        <span id="statusText">Inactif</span>
+      </div>
+    </div>
+
+    <!-- NOTE DISPLAY -->
+    <div class="note-display">
+      <div class="note-main">
+        <div class="note-name empty" id="noteName">–</div>
+        <div class="note-octave" id="noteOctave"></div>
+      </div>
+      <div class="note-freq" id="noteFreq">– Hz</div>
+    </div>
+
+    <!-- TUNING INDICATOR -->
+    <div class="tuner-indicator">
+      <div class="tuner-labels">
+        <span class="tuner-label">♭</span>
+        <span class="cents-display" id="centsDisplay">–</span>
+        <span class="tuner-label right">♯</span>
+      </div>
+      <div class="tuner-track-wrap">
+        <div class="tuner-track">
+          <div class="tuner-needle inactive" id="tunerNeedle"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ERROR MESSAGE -->
+    <div class="error-msg" id="errorMsg">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span id="errorText">Accès au microphone refusé.</span>
+    </div>
+
+    <!-- STRING REFERENCE -->
+    <div class="strings-section">
+      <div class="strings-label">Accordage standard — cliquer pour entendre</div>
+      <div class="strings-grid">
+        <button class="string-btn" onclick="playReference(82.41, this)">
+          <span class="string-note">E</span>
+          <span class="string-octave">2</span>
+          <span class="string-num">6e</span>
+        </button>
+        <button class="string-btn" onclick="playReference(110.00, this)">
+          <span class="string-note">A</span>
+          <span class="string-octave">2</span>
+          <span class="string-num">5e</span>
+        </button>
+        <button class="string-btn" onclick="playReference(146.83, this)">
+          <span class="string-note">D</span>
+          <span class="string-octave">3</span>
+          <span class="string-num">4e</span>
+        </button>
+        <button class="string-btn" onclick="playReference(196.00, this)">
+          <span class="string-note">G</span>
+          <span class="string-octave">3</span>
+          <span class="string-num">3e</span>
+        </button>
+        <button class="string-btn" onclick="playReference(246.94, this)">
+          <span class="string-note">B</span>
+          <span class="string-octave">3</span>
+          <span class="string-num">2e</span>
+        </button>
+        <button class="string-btn" onclick="playReference(329.63, this)">
+          <span class="string-note">E</span>
+          <span class="string-octave">4</span>
+          <span class="string-num">1re</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- START/STOP -->
+    <div class="actions">
+      <button class="btn-start" id="btnStart" onclick="toggleTuner()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" y1="19" x2="12" y2="23"/>
+          <line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
+        Activer le micro
+      </button>
+    </div>
+
+  </main>
+
+  <footer>© 2026 Guitarisation™ — L'École de Guitare 2.0 · par Samuel Ferton</footer>
+
+  <!-- HELP BUTTON -->
+  <button class="help-btn" id="helpBtn" onclick="toggleHelp()" aria-label="Aide">?</button>
+  <div class="help-panel" id="helpPanel">
+    <div class="help-header">
+      <span class="help-title">Comment utiliser l'accordeur</span>
+      <button class="help-close" onclick="toggleHelp()" aria-label="Fermer">✕</button>
+    </div>
+    <div class="help-body">
+      <p><strong>Activer le microphone</strong><br>
+      Clique sur "Activer le micro" et autorise l'accès au microphone dans ton navigateur. L'accordeur écoute en temps réel.</p>
+      <p><strong>Lire l'affichage</strong><br>
+      La grosse lettre indique la note détectée. L'aiguille montre si tu es juste (centre vert), trop bas (♭ gauche) ou trop haut (♯ droite). "ACCORDÉ ✓" s'affiche quand tu es à ±5 cents.</p>
+      <p><strong>Référence sonore</strong><br>
+      Clique sur une corde (E2, A2, D3…) pour entendre la note de référence pendant 2 secondes. Idéal pour un accordage à l'oreille.</p>
+      <p><strong>Accorder une corde</strong><br>
+      Joue la corde, regarde l'aiguille, et tourne la mécanisme jusqu'à ce que l'aiguille soit centrée sur le vert.</p>
+    </div>
+  </div>
+
+  <script>
+    // ─── NOTE NAMES ───
+    const NOTE_NAMES = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+    const NOTE_NAMES_FR = ['Do','Ré','Mi','Fa','Sol','La','Si'];
+
+    // ─── STATE ───
+    let audioCtx = null;
+    let analyser = null;
+    let stream   = null;
+    let rafId    = null;
+    let isRunning = false;
+    let smoothFreq = -1;
+    let lastUpdateTime = 0;
+    const UPDATE_INTERVAL = 80; // ms between display updates
+    const SMOOTH = 0.75;
+
+    // ─── PITCH DETECTION (normalized autocorrelation) ───
+    function getPitch(buf, sampleRate) {
+      const n = buf.length;
+
+      // RMS check — bail if too quiet
+      let rms = 0;
+      for (let i = 0; i < n; i++) rms += buf[i] * buf[i];
+      rms = Math.sqrt(rms / n);
+      if (rms < 0.008) return -1;
+
+      // Guitar range: ~75 Hz (E2 with some margin) to 1400 Hz
+      const minPeriod = Math.floor(sampleRate / 1400); // ~31 samples
+      const maxPeriod = Math.min(Math.ceil(sampleRate / 75), Math.floor(n / 2)); // ~588 samples
+
+      let bestCorr   = -1;
+      let bestPeriod = -1;
+
+      for (let t = minPeriod; t <= maxPeriod; t++) {
+        let num = 0, d1 = 0, d2 = 0;
+        const limit = n - t;
+        for (let i = 0; i < limit; i++) {
+          num += buf[i] * buf[i + t];
+          d1  += buf[i] * buf[i];
+          d2  += buf[i + t] * buf[i + t];
+        }
+        const denom = Math.sqrt(d1 * d2);
+        const corr  = denom > 0 ? num / denom : 0;
+        if (corr > bestCorr) {
+          bestCorr   = corr;
+          bestPeriod = t;
+        }
+      }
+
+      if (bestCorr < 0.82 || bestPeriod < 0) return -1;
+
+      // Parabolic interpolation for sub-sample accuracy
+      let refined = bestPeriod;
+      if (bestPeriod > minPeriod && bestPeriod < maxPeriod) {
+        // Recompute neighbors quickly
+        const calcCorr = (t) => {
+          let num = 0, d1 = 0, d2 = 0;
+          const lim = n - t;
+          for (let i = 0; i < lim; i++) {
+            num += buf[i] * buf[i + t];
+            d1  += buf[i] * buf[i];
+            d2  += buf[i + t] * buf[i + t];
+          }
+          const den = Math.sqrt(d1 * d2);
+          return den > 0 ? num / den : 0;
+        };
+        const c0 = calcCorr(bestPeriod - 1);
+        const c1 = bestCorr;
+        const c2 = calcCorr(bestPeriod + 1);
+        const denom2 = 2 * (2 * c1 - c0 - c2);
+        if (denom2 !== 0) refined = bestPeriod + (c2 - c0) / denom2;
+      }
+
+      return sampleRate / refined;
+    }
+
+    // ─── FREQ → NOTE ───
+    function freqToNote(freq) {
+      const midi  = 69 + 12 * Math.log2(freq / 440);
+      const midiR = Math.round(midi);
+      const cents = Math.round((midi - midiR) * 100);
+      const name  = NOTE_NAMES[((midiR % 12) + 12) % 12];
+      const octave = Math.floor(midiR / 12) - 1;
+      return { name, octave, cents, midi };
+    }
+
+    // ─── DISPLAY UPDATE ───
+    function updateDisplay(freq) {
+      const needle  = document.getElementById('tunerNeedle');
+      const noteName= document.getElementById('noteName');
+      const noteOct = document.getElementById('noteOctave');
+      const noteHz  = document.getElementById('noteFreq');
+      const centsEl = document.getElementById('centsDisplay');
+      const pill    = document.getElementById('statusPill');
+      const pillTxt = document.getElementById('statusText');
+
+      if (freq < 0) {
+        noteName.textContent = '–';
+        noteName.className   = 'note-name empty';
+        noteOct.textContent  = '';
+        noteHz.textContent   = '– Hz';
+        centsEl.textContent  = '–';
+        needle.className     = 'tuner-needle inactive';
+        needle.style.left    = '50%';
+        pill.className       = 'status-pill listening';
+        pillTxt.textContent  = 'Écoute…';
+        return;
+      }
+
+      const { name, octave, cents } = freqToNote(freq);
+      const inTune = Math.abs(cents) <= 5;
+
+      // Note name
+      noteName.textContent = name;
+      noteName.className   = 'note-name' + (inTune ? ' in-tune' : '');
+      noteOct.textContent  = octave;
+      noteHz.textContent   = freq.toFixed(1) + ' Hz';
+
+      // Cents
+      const sign = cents > 0 ? '+' : '';
+      centsEl.textContent = inTune ? 'ACCORDÉ ✓' : `${sign}${cents}¢`;
+
+      // Needle position: cents in [-50, +50] → left in [5%, 95%]
+      const clamped = Math.max(-50, Math.min(50, cents));
+      const pct     = 50 + clamped * 0.9; // 50% at center, ±45% at extremes
+      needle.style.left  = pct + '%';
+      needle.className   = 'tuner-needle' + (inTune ? ' in-tune' : '');
+
+      // Status pill
+      if (inTune) {
+        pill.className  = 'status-pill in-tune';
+        pillTxt.textContent = 'Accordé ✓';
+      } else {
+        pill.className  = 'status-pill listening';
+        pillTxt.textContent = 'Écoute…';
+      }
+    }
+
+    // ─── ANIMATION LOOP ───
+    let bufferData = null;
+
+    function animate(timestamp) {
+      if (!isRunning) return;
+      rafId = requestAnimationFrame(animate);
+
+      if (timestamp - lastUpdateTime < UPDATE_INTERVAL) return;
+      lastUpdateTime = timestamp;
+
+      if (!bufferData) bufferData = new Float32Array(analyser.fftSize);
+      analyser.getFloatTimeDomainData(bufferData);
+      const freq = getPitch(bufferData, audioCtx.sampleRate);
+
+      if (freq > 0) {
+        smoothFreq = smoothFreq < 0 ? freq : SMOOTH * smoothFreq + (1 - SMOOTH) * freq;
+        updateDisplay(smoothFreq);
+      } else {
+        smoothFreq = -1;
+        updateDisplay(-1);
+      }
+    }
+
+    // ─── START / STOP ───
+    async function toggleTuner() {
+      if (isRunning) {
+        stopTuner();
+      } else {
+        await startTuner();
+      }
+    }
+
+    async function startTuner() {
+      const btn = document.getElementById('btnStart');
+      const err = document.getElementById('errorMsg');
+      err.classList.remove('visible');
+
+      try {
+        stream   = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioCtx.createAnalyser();
+        analyser.fftSize = 4096;
+        analyser.smoothingTimeConstant = 0;
+
+        const source = audioCtx.createMediaStreamSource(stream);
+        source.connect(analyser);
+
+        isRunning  = true;
+        smoothFreq = -1;
+
+        btn.classList.add('active');
+        btn.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+            <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+          </svg>
+          Désactiver`;
+
+        document.getElementById('statusPill').className = 'status-pill listening';
+        document.getElementById('statusText').textContent = 'Écoute…';
+        document.getElementById('tunerNeedle').classList.remove('inactive');
+
+        requestAnimationFrame(animate);
+
+      } catch (e) {
+        let msg = 'Accès au microphone refusé.';
+        if (e.name === 'NotFoundError') msg = 'Aucun microphone détecté.';
+        else if (e.name === 'NotAllowedError') msg = 'Accès au microphone refusé. Vérifie les permissions du navigateur.';
+        document.getElementById('errorText').textContent = msg;
+        err.classList.add('visible');
+      }
+    }
+
+    function stopTuner() {
+      isRunning = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      if (stream) stream.getTracks().forEach(t => t.stop());
+      if (audioCtx) { audioCtx.close(); audioCtx = null; }
+
+      const btn = document.getElementById('btnStart');
+      btn.classList.remove('active');
+      btn.innerHTML = `
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" y1="19" x2="12" y2="23"/>
+          <line x1="8" y1="23" x2="16" y2="23"/>
+        </svg>
+        Activer le micro`;
+
+      document.getElementById('statusPill').className = 'status-pill';
+      document.getElementById('statusText').textContent = 'Inactif';
+      document.getElementById('tunerNeedle').className = 'tuner-needle inactive';
+      document.getElementById('tunerNeedle').style.left = '50%';
+      document.getElementById('noteName').textContent = '–';
+      document.getElementById('noteName').className = 'note-name empty';
+      document.getElementById('noteOctave').textContent = '';
+      document.getElementById('noteFreq').textContent = '– Hz';
+      document.getElementById('centsDisplay').textContent = '–';
+    }
+
+    // ─── REFERENCE TONE ───
+    let refCtx = null;
+    let refOsc = null;
+    let refTimeout = null;
+
+    function playReference(freq, btn) {
+      // Stop any playing reference
+      if (refOsc) {
+        refOsc.stop();
+        refOsc = null;
+      }
+      if (refTimeout) clearTimeout(refTimeout);
+      document.querySelectorAll('.string-btn').forEach(b => b.classList.remove('playing'));
+
+      if (!refCtx) refCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+      const osc  = refCtx.createOscillator();
+      const gain = refCtx.createGain();
+
+      osc.type      = 'triangle';
+      osc.frequency.value = freq;
+
+      // Pluck-like envelope: fast attack, exponential decay
+      const now = refCtx.currentTime;
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(0.5, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 2.0);
+
+      osc.connect(gain);
+      gain.connect(refCtx.destination);
+      osc.start(now);
+      osc.stop(now + 2.1);
+
+      refOsc = osc;
+      btn.classList.add('playing');
+
+      refTimeout = setTimeout(() => {
+        btn.classList.remove('playing');
+        refOsc = null;
+      }, 2000);
+    }
+
+    // ─── HAMBURGER NAV ───
+    function toggleNav() {
+      document.getElementById('navDropdown').classList.toggle('open');
+    }
+    document.addEventListener('click', e => {
+      if (!e.target.closest('#hamburgerBtn') && !e.target.closest('#navDropdown')) {
+        document.getElementById('navDropdown').classList.remove('open');
+      }
+    });
+
+    // ─── HELP ───
+    function toggleHelp() {
+      const btn   = document.getElementById('helpBtn');
+      const panel = document.getElementById('helpPanel');
+      const isOpen = panel.classList.toggle('open');
+      btn.classList.toggle('open', isOpen);
+    }
+    document.addEventListener('click', e => {
+      if (!e.target.closest('#helpBtn') && !e.target.closest('#helpPanel')) {
+        document.getElementById('helpPanel').classList.remove('open');
+        document.getElementById('helpBtn').classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>
