@@ -239,29 +239,50 @@
     .tuner-needle.inactive { opacity: 0.15; }
 
     /* ─── CAPO SELECTOR ─── */
-    .capo-section {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 14px; border-radius: var(--r-sm);
-      background: var(--border2); border: 1.5px solid var(--border);
+    .capo-toggle {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0; background: none; border: none;
+      cursor: pointer; font-family: inherit; width: 100%;
     }
-    .capo-label {
-      font-size: 11px; font-weight: 700; color: var(--muted2);
-      white-space: nowrap; flex-shrink: 0;
+    .capo-toggle-left {
+      display: flex; align-items: center; gap: 8px;
+    }
+    .capo-toggle-label {
+      font-size: 11px; font-weight: 700; color: var(--muted2); letter-spacing: 0.3px;
+    }
+    .capo-toggle-value {
+      font-size: 11px; font-weight: 700; color: var(--accent);
+      display: none;
+    }
+    .capo-toggle-value.visible { display: inline; }
+    .capo-toggle-chevron {
+      font-size: 10px; color: var(--muted); transition: transform 0.2s ease;
+      line-height: 1;
+    }
+    .capo-toggle.open .capo-toggle-chevron { transform: rotate(180deg); }
+
+    .capo-drawer {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.25s ease, opacity 0.2s ease;
+      opacity: 0;
+    }
+    .capo-drawer.open {
+      max-height: 60px;
+      opacity: 1;
     }
     .capo-btns {
-      display: flex; gap: 4px; flex-wrap: wrap;
+      display: flex; gap: 4px; flex-wrap: wrap; padding-top: 10px;
     }
     .capo-btn {
-      padding: 4px 8px; border-radius: 6px;
-      background: transparent; border: 1.5px solid transparent;
+      padding: 4px 9px; border-radius: 6px;
+      background: transparent; border: 1.5px solid var(--border);
       cursor: pointer; font-family: inherit;
       font-size: 12px; font-weight: 700; color: var(--muted2);
       transition: background 0.1s, color 0.1s, border-color 0.1s;
     }
-    .capo-btn:hover { background: white; color: var(--dark); border-color: var(--border); }
-    .capo-btn.active {
-      background: var(--accent); border-color: var(--accent); color: white;
-    }
+    .capo-btn:hover { background: white; color: var(--dark); }
+    .capo-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
 
     /* ─── STRING REFERENCE ─── */
     .strings-section { display: flex; flex-direction: column; gap: 10px; }
@@ -449,17 +470,25 @@
     </div>
 
     <!-- CAPO SELECTOR -->
-    <div class="capo-section">
-      <span class="capo-label">Capo</span>
-      <div class="capo-btns">
-        <button class="capo-btn active" onclick="setCapo(0, this)">—</button>
-        <button class="capo-btn" onclick="setCapo(1, this)">I</button>
-        <button class="capo-btn" onclick="setCapo(2, this)">II</button>
-        <button class="capo-btn" onclick="setCapo(3, this)">III</button>
-        <button class="capo-btn" onclick="setCapo(4, this)">IV</button>
-        <button class="capo-btn" onclick="setCapo(5, this)">V</button>
-        <button class="capo-btn" onclick="setCapo(6, this)">VI</button>
-        <button class="capo-btn" onclick="setCapo(7, this)">VII</button>
+    <div>
+      <button class="capo-toggle" id="capoToggle" onclick="toggleCapoDrawer()">
+        <div class="capo-toggle-left">
+          <span class="capo-toggle-label">Capodastre</span>
+          <span class="capo-toggle-value" id="capoToggleValue"></span>
+        </div>
+        <span class="capo-toggle-chevron">▾</span>
+      </button>
+      <div class="capo-drawer" id="capoDrawer">
+        <div class="capo-btns">
+          <button class="capo-btn active" onclick="setCapo(0, this)">—</button>
+          <button class="capo-btn" onclick="setCapo(1, this)">I</button>
+          <button class="capo-btn" onclick="setCapo(2, this)">II</button>
+          <button class="capo-btn" onclick="setCapo(3, this)">III</button>
+          <button class="capo-btn" onclick="setCapo(4, this)">IV</button>
+          <button class="capo-btn" onclick="setCapo(5, this)">V</button>
+          <button class="capo-btn" onclick="setCapo(6, this)">VI</button>
+          <button class="capo-btn" onclick="setCapo(7, this)">VII</button>
+        </div>
       </div>
     </div>
 
@@ -548,11 +577,31 @@
     // ─── CAPO STATE ───
     let capoFret = 0;
 
+    function toggleCapoDrawer() {
+      const toggle = document.getElementById('capoToggle');
+      const drawer = document.getElementById('capoDrawer');
+      toggle.classList.toggle('open');
+      drawer.classList.toggle('open');
+    }
+
     function setCapo(fret, btn) {
       capoFret = fret;
       document.querySelectorAll('.capo-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
+
+      const val = document.getElementById('capoToggleValue');
+      if (fret > 0) {
+        val.textContent = `case ${fret}`;
+        val.classList.add('visible');
+      } else {
+        val.classList.remove('visible');
+      }
+
       updateStringButtons();
+
+      // Auto-ferme le drawer après sélection
+      document.getElementById('capoToggle').classList.remove('open');
+      document.getElementById('capoDrawer').classList.remove('open');
     }
 
     // Raw conversion — no capo offset — used for string reference labels
