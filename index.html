@@ -713,7 +713,7 @@
     let smoothFreq = -1;
     let lastUpdateTime = 0;
     const UPDATE_INTERVAL = 80; // ms between display updates
-    const SMOOTH = 0.92;
+    const SMOOTH = 0.95;
 
     // ─── PITCH DETECTION (normalized autocorrelation) ───
     function getPitch(buf, sampleRate) {
@@ -874,6 +874,11 @@
       const freq = getPitch(bufferData, audioCtx.sampleRate);
 
       if (freq > 0) {
+        if (smoothFreq > 0) {
+          // Ignore les sauts > 80 cents (harmoniques parasites)
+          const cents = Math.abs(1200 * Math.log2(freq / smoothFreq));
+          if (cents > 80) return;
+        }
         smoothFreq = smoothFreq < 0 ? freq : SMOOTH * smoothFreq + (1 - SMOOTH) * freq;
         updateDisplay(smoothFreq);
       } else {
