@@ -190,54 +190,25 @@
       font-variant-numeric: tabular-nums;
     }
 
-    .tuner-track-wrap {
-      width: 100%; position: relative; padding: 8px 0;
+    /* ─── TREE SCENE ─── */
+    .tree-scene { width: 100%; }
+    .tree-scene svg { width: 100%; height: auto; display: block; }
+
+    @keyframes catBob {
+      0%, 100% { transform: translateY(0px); }
+      50%       { transform: translateY(-2px); }
     }
-    .tuner-track {
-      width: 100%; height: 10px; border-radius: 5px;
-      background: linear-gradient(
-        to right,
-        #ef4444 0%,
-        #f97316 25%,
-        #facc15 40%,
-        #22c55e 46%,
-        #22c55e 54%,
-        #facc15 60%,
-        #f97316 75%,
-        #ef4444 100%
-      );
-      position: relative;
+    #catInner { animation: catBob 0.75s ease-in-out infinite; }
+
+    #catWrapper { transition: opacity 0.25s; }
+    #catWrapper.inactive { opacity: 0; }
+
+    #appleGroup {
+      transform-box: fill-box; transform-origin: center;
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
     }
-    /* Center tick */
-    .tuner-track::before {
-      content: '';
-      position: absolute; top: -5px; left: calc(50% - 1px);
-      width: 2px; height: 20px;
-      background: var(--dark); border-radius: 1px; opacity: 0.25;
-    }
-    /* Needle */
-    .tuner-needle {
-      position: absolute;
-      top: -8px; left: 50%;
-      transform: translateX(-50%);
-      width: 3px; height: 26px;
-      background: var(--dark);
-      border-radius: 2px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      transition: left 0.12s ease, background 0.3s;
-    }
-    .tuner-needle::after {
-      content: '';
-      position: absolute; bottom: -5px; left: 50%;
-      transform: translateX(-50%);
-      width: 11px; height: 11px;
-      border-radius: 50%;
-      background: inherit;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-    }
-    .tuner-needle.in-tune { background: var(--green); }
-    .tuner-needle.inactive { opacity: 0; }
-    .tuner-track.inactive { opacity: 0.2; }
+    #appleGroup.in-tune { transform: scale(1.18); }
+    #appleBody { transition: fill 0.3s ease; }
 
     /* ─── OPTIONS ROW (CAPO + ACCORDAGE) ─── */
     .options-row { display: flex; gap: 8px; }
@@ -470,10 +441,55 @@
         <span class="cents-display" id="centsDisplay">–</span>
         <span class="tuner-label right">♯</span>
       </div>
-      <div class="tuner-track-wrap">
-        <div class="tuner-track">
-          <div class="tuner-needle inactive" id="tunerNeedle"></div>
-        </div>
+      <div class="tree-scene">
+        <svg viewBox="0 0 360 72" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- Branche -->
+          <path d="M 0 46 C 80 42 160 50 180 46 C 200 42 280 50 360 46"
+                stroke="#92400e" stroke-width="9" fill="none" stroke-linecap="round"/>
+          <!-- Feuilles gauche -->
+          <ellipse cx="68"  cy="37" rx="14" ry="5.5" fill="#16a34a" transform="rotate(-22 68 37)"/>
+          <ellipse cx="90"  cy="34" rx="10" ry="4"   fill="#15803d" transform="rotate(12 90 34)"/>
+          <!-- Feuilles droite -->
+          <ellipse cx="292" cy="37" rx="14" ry="5.5" fill="#16a34a" transform="rotate(22 292 37)"/>
+          <ellipse cx="270" cy="34" rx="10" ry="4"   fill="#15803d" transform="rotate(-12 270 34)"/>
+          <!-- Pomme -->
+          <g id="appleGroup">
+            <ellipse cx="188" cy="19" rx="9" ry="3.5" fill="#16a34a" transform="rotate(-35 188 19)"/>
+            <line x1="180" y1="16" x2="180" y2="28" stroke="#92400e" stroke-width="2.5" stroke-linecap="round"/>
+            <circle id="appleBody" cx="180" cy="32" r="14" fill="#dc2626"/>
+            <circle cx="174" cy="25" r="3.5" fill="rgba(255,255,255,0.30)"/>
+          </g>
+          <!-- Chenille -->
+          <g id="catWrapper" class="inactive">
+            <g id="catInner">
+              <!-- Corps -->
+              <circle cx="0"  cy="-9"  r="6.5" fill="#4ade80"/>
+              <circle cx="13" cy="-11" r="7.5"  fill="#22c55e"/>
+              <circle cx="26" cy="-11" r="7.5"  fill="#4ade80"/>
+              <!-- Tête -->
+              <circle cx="39" cy="-9"  r="8.5"  fill="#22c55e"/>
+              <!-- Yeux -->
+              <circle cx="43.5" cy="-12" r="2.8" fill="white"/>
+              <circle cx="44.5" cy="-12" r="1.4" fill="#111"/>
+              <!-- Bouche normale -->
+              <path id="catMouthNormal" d="M 37 -6.5 Q 40.5 -4 43.5 -6.5"
+                    stroke="#111" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+              <!-- Bouche contente (cachée) -->
+              <path id="catMouthHappy" d="M 35.5 -8 Q 40 -2 44.5 -8"
+                    stroke="#111" stroke-width="1.5" fill="none" stroke-linecap="round"
+                    style="display:none"/>
+              <!-- Antennes -->
+              <line x1="36" y1="-17" x2="31" y2="-27" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="31" cy="-27" r="2.2" fill="#facc15"/>
+              <line x1="41" y1="-18" x2="47" y2="-27" stroke="#22c55e" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="47" cy="-27" r="2.2" fill="#facc15"/>
+              <!-- Pattes -->
+              <line x1="5"  y1="-3" x2="2"  y2="4" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="18" y1="-3" x2="15" y2="4" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"/>
+              <line x1="31" y1="-3" x2="28" y2="4" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"/>
+            </g>
+          </g>
+        </svg>
       </div>
     </div>
 
@@ -788,8 +804,27 @@
     }
 
     // ─── DISPLAY UPDATE ───
+    function setCaterpillar(cents, inTune) {
+      const clamped = Math.max(-50, Math.min(50, cents));
+      // head center (groupX + 39) aligns with apple (x=180) when cents=0
+      const groupX = 180 + clamped * 3.0 - 39;
+      document.getElementById('catWrapper').setAttribute('transform', `translate(${groupX}, 46)`);
+      document.getElementById('catWrapper').classList.remove('inactive');
+      document.getElementById('appleGroup').classList.toggle('in-tune', inTune);
+      document.getElementById('appleBody').setAttribute('fill', inTune ? '#f59e0b' : '#dc2626');
+      document.getElementById('catMouthNormal').style.display = inTune ? 'none'  : '';
+      document.getElementById('catMouthHappy').style.display  = inTune ? '' : 'none';
+    }
+
+    function resetCaterpillar() {
+      document.getElementById('catWrapper').classList.add('inactive');
+      document.getElementById('appleGroup').classList.remove('in-tune');
+      document.getElementById('appleBody').setAttribute('fill', '#dc2626');
+      document.getElementById('catMouthNormal').style.display = '';
+      document.getElementById('catMouthHappy').style.display  = 'none';
+    }
+
     function updateDisplay(freq) {
-      const needle  = document.getElementById('tunerNeedle');
       const noteName= document.getElementById('noteName');
       const noteOct = document.getElementById('noteOctave');
       const noteHz  = document.getElementById('noteFreq');
@@ -803,9 +838,7 @@
         noteOct.textContent  = '';
         noteHz.textContent   = '– Hz';
         centsEl.textContent  = '–';
-        needle.className     = 'tuner-needle inactive';
-        needle.style.left    = '50%';
-        document.querySelector('.tuner-track').classList.add('inactive');
+        resetCaterpillar();
         pill.className       = 'status-pill listening';
         pillTxt.textContent  = 'Écoute…';
         wasInTune = false;
@@ -813,8 +846,6 @@
         inTuneTimer = null;
         return;
       }
-      document.querySelector('.tuner-track').classList.remove('inactive');
-
       const { name, octave, cents } = freqToNote(freq);
       const inTune = Math.abs(cents) <= 5;
       if (inTune && !wasInTune) {
@@ -842,11 +873,7 @@
       const sign = cents > 0 ? '+' : '';
       centsEl.textContent = inTune ? 'ACCORDÉ ✓' : `${sign}${cents}¢`;
 
-      // Needle position: cents in [-50, +50] → left in [5%, 95%]
-      const clamped = Math.max(-50, Math.min(50, cents));
-      const pct     = 50 + clamped * 0.9; // 50% at center, ±45% at extremes
-      needle.style.left  = pct + '%';
-      needle.className   = 'tuner-needle' + (inTune ? ' in-tune' : '');
+      setCaterpillar(cents, inTune);
 
       // Status pill
       if (inTune) {
@@ -976,9 +1003,7 @@
 
       document.getElementById('statusPill').className = 'status-pill';
       document.getElementById('statusText').textContent = 'Inactif';
-      document.getElementById('tunerNeedle').className = 'tuner-needle inactive';
-      document.getElementById('tunerNeedle').style.left = '50%';
-      document.querySelector('.tuner-track').classList.add('inactive');
+      resetCaterpillar();
       document.getElementById('noteName').textContent = '–';
       document.getElementById('noteName').className = 'note-name empty';
       document.getElementById('noteOctave').textContent = '';
