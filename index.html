@@ -315,12 +315,30 @@
 
     /* ─── ERROR MESSAGE ─── */
     .error-msg {
-      display: none; align-items: center; gap: 8px;
-      padding: 10px 14px; border-radius: var(--r-xs);
+      display: none; flex-direction: column; gap: 10px;
+      padding: 14px 16px; border-radius: var(--r-xs);
       background: #fef2f2; border: 1.5px solid #fecaca;
-      font-size: 12px; font-weight: 600; color: #b91c1c;
+      font-size: 12px; color: #b91c1c;
+      width: 100%;
     }
     .error-msg.visible { display: flex; }
+    .error-msg-title {
+      display: flex; align-items: center; gap: 8px;
+      font-weight: 700; font-size: 13px;
+    }
+    .error-msg-steps {
+      display: flex; flex-direction: column; gap: 6px;
+      padding-left: 4px;
+    }
+    .error-msg-step {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-weight: 500; color: #991b1b; font-size: 12px; line-height: 1.4;
+    }
+    .error-msg-step-num {
+      display: flex; align-items: center; justify-content: center;
+      min-width: 18px; height: 18px; border-radius: 50%;
+      background: #fecaca; font-size: 10px; font-weight: 800; margin-top: 1px;
+    }
 
     /* ─── FOOTER ─── */
     footer {
@@ -495,10 +513,13 @@
 
     <!-- ERROR MESSAGE -->
     <div class="error-msg" id="errorMsg">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-      </svg>
-      <span id="errorText">Accès au microphone refusé.</span>
+      <div class="error-msg-title">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span id="errorText">Accès au microphone refusé.</span>
+      </div>
+      <div class="error-msg-steps" id="errorSteps"></div>
     </div>
 
     <!-- OPTIONS : CAPO + ACCORDAGE -->
@@ -944,10 +965,35 @@
       }
     }
 
+    function showError(msg, steps) {
+      document.getElementById('errorText').textContent = msg;
+      const stepsEl = document.getElementById('errorSteps');
+      stepsEl.innerHTML = steps.map((s, i) =>
+        `<div class="error-msg-step"><span class="error-msg-step-num">${i + 1}</span><span>${s}</span></div>`
+      ).join('');
+      document.getElementById('errorMsg').classList.add('visible');
+    }
+
     async function startTuner() {
       const btn = document.getElementById('btnStart');
       const err = document.getElementById('errorMsg');
       err.classList.remove('visible');
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        const isFile = location.protocol === 'file:';
+        if (isFile) {
+          showError('Microphone non accessible en local.', [
+            'Ce fichier est ouvert directement (file://). Les navigateurs bloquent le micro dans ce mode.',
+            'Ouvre l\'accordeur sur tuner.guitarisation.fr pour que le micro fonctionne.',
+          ]);
+        } else {
+          showError('Microphone non accessible.', [
+            'Vérifie que la page est ouverte en HTTPS (https://tuner.guitarisation.fr).',
+            'Le micro ne fonctionne pas sur HTTP ou file://.',
+          ]);
+        }
+        return;
+      }
 
       try {
         stream   = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
@@ -976,11 +1022,25 @@
         requestAnimationFrame(animate);
 
       } catch (e) {
-        let msg = 'Accès au microphone refusé.';
-        if (e.name === 'NotFoundError') msg = 'Aucun microphone détecté.';
-        else if (e.name === 'NotAllowedError') msg = 'Accès au microphone refusé. Vérifie les permissions du navigateur.';
-        document.getElementById('errorText').textContent = msg;
-        err.classList.add('visible');
+        console.error('Tuner mic error:', e.name, e.message, e);
+        if (e.name === 'NotFoundError' || e.name === 'DevicesNotFoundError') {
+          showError('Aucun microphone détecté.', [
+            'Branche un microphone ou vérifie que le micro intégré est actif.',
+            'Sur Mac : Préférences Système → Son → Entrée — vérifie qu\'un appareil est listé.',
+          ]);
+        } else if (e.name === 'NotAllowedError' || e.name === 'PermissionDeniedError') {
+          showError('Accès au microphone bloqué.', [
+            'Clique sur l\'icône 🔒 ou 🎤 dans la barre d\'adresse et autorise le microphone.',
+            'Si bloqué en permanence : Préférences du navigateur → Confidentialité → Microphone → autorise ce site.',
+            'Sur Mac : Préférences Système → Sécurité et confidentialité → Microphone → coche ton navigateur.',
+            'Recharge la page après avoir modifié les permissions.',
+          ]);
+        } else {
+          showError('Erreur microphone (' + e.name + ').', [
+            'Ouvre la console du navigateur (F12) et regarde le message d\'erreur pour plus de détails.',
+            'Recharge la page et réessaie.',
+          ]);
+        }
       }
     }
 
