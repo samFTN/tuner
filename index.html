@@ -238,6 +238,39 @@
     .tuner-needle.in-tune { background: var(--green); }
     .tuner-needle.inactive { opacity: 0.15; }
 
+    /* ─── CAPO SELECTOR ─── */
+    .capo-section { display: flex; flex-direction: column; gap: 10px; }
+    .capo-label {
+      font-size: 10px; font-weight: 700; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--muted); text-align: center;
+    }
+    .capo-grid {
+      display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px;
+    }
+    .capo-btn {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 8px 4px; border-radius: var(--r-sm);
+      background: var(--border2); border: 1.5px solid var(--border);
+      cursor: pointer; font-family: inherit;
+      font-size: 13px; font-weight: 700; color: var(--dark);
+      transition: background 0.12s, border-color 0.12s, transform 0.08s;
+    }
+    .capo-btn:hover { background: var(--accent-soft); border-color: var(--accent); transform: translateY(-1px); }
+    .capo-btn:active { transform: translateY(0); }
+    .capo-btn.active {
+      background: var(--accent); border-color: var(--accent); color: white;
+    }
+    .capo-btn .capo-sub {
+      font-size: 9px; font-weight: 600; color: inherit; opacity: 0.7; margin-top: 2px;
+    }
+    .capo-active-badge {
+      display: none; align-items: center; justify-content: center; gap: 6px;
+      padding: 6px 12px; border-radius: 20px;
+      background: var(--accent-soft); border: 1.5px solid var(--accent);
+      font-size: 11px; font-weight: 700; color: var(--accent);
+    }
+    .capo-active-badge.visible { display: flex; }
+
     /* ─── STRING REFERENCE ─── */
     .strings-section { display: flex; flex-direction: column; gap: 10px; }
     .strings-label {
@@ -423,38 +456,80 @@
       <span id="errorText">Accès au microphone refusé.</span>
     </div>
 
+    <!-- CAPO SELECTOR -->
+    <div class="capo-section">
+      <div class="capo-label">Capodastre</div>
+      <div class="capo-grid">
+        <button class="capo-btn active" onclick="setCapo(0, this)">
+          <span>—</span>
+          <span class="capo-sub">sans</span>
+        </button>
+        <button class="capo-btn" onclick="setCapo(1, this)">
+          <span>I</span>
+          <span class="capo-sub">case</span>
+        </button>
+        <button class="capo-btn" onclick="setCapo(2, this)">
+          <span>II</span>
+          <span class="capo-sub">case</span>
+        </button>
+        <button class="capo-btn" onclick="setCapo(3, this)">
+          <span>III</span>
+          <span class="capo-sub">case</span>
+        </button>
+        <button class="capo-btn" onclick="setCapo(4, this)">
+          <span>IV</span>
+          <span class="capo-sub">case</span>
+        </button>
+        <button class="capo-btn" onclick="setCapo(5, this)">
+          <span>V</span>
+          <span class="capo-sub">case</span>
+        </button>
+        <button class="capo-btn" onclick="setCapo(6, this)">
+          <span>VI</span>
+          <span class="capo-sub">case</span>
+        </button>
+        <button class="capo-btn" onclick="setCapo(7, this)">
+          <span>VII</span>
+          <span class="capo-sub">case</span>
+        </button>
+      </div>
+      <div class="capo-active-badge" id="capoActiveBadge">
+        🎸 Capo case <span id="capoFretLabel"></span> — notes transposées
+      </div>
+    </div>
+
     <!-- STRING REFERENCE -->
     <div class="strings-section">
-      <div class="strings-label">Accordage standard — cliquer pour entendre</div>
-      <div class="strings-grid">
-        <button class="string-btn" onclick="playReference(82.41, this)">
+      <div class="strings-label" id="stringsLabel">Accordage standard — cliquer pour entendre</div>
+      <div class="strings-grid" id="stringsGrid">
+        <button class="string-btn" data-base="82.41" onclick="playStringRef(this)">
           <span class="string-note">E</span>
-          <span class="string-octave">2</span>
+          <span class="string-octave" data-label="2">2</span>
           <span class="string-num">6e</span>
         </button>
-        <button class="string-btn" onclick="playReference(110.00, this)">
+        <button class="string-btn" data-base="110.00" onclick="playStringRef(this)">
           <span class="string-note">A</span>
-          <span class="string-octave">2</span>
+          <span class="string-octave" data-label="2">2</span>
           <span class="string-num">5e</span>
         </button>
-        <button class="string-btn" onclick="playReference(146.83, this)">
+        <button class="string-btn" data-base="146.83" onclick="playStringRef(this)">
           <span class="string-note">D</span>
-          <span class="string-octave">3</span>
+          <span class="string-octave" data-label="3">3</span>
           <span class="string-num">4e</span>
         </button>
-        <button class="string-btn" onclick="playReference(196.00, this)">
+        <button class="string-btn" data-base="196.00" onclick="playStringRef(this)">
           <span class="string-note">G</span>
-          <span class="string-octave">3</span>
+          <span class="string-octave" data-label="3">3</span>
           <span class="string-num">3e</span>
         </button>
-        <button class="string-btn" onclick="playReference(246.94, this)">
+        <button class="string-btn" data-base="246.94" onclick="playStringRef(this)">
           <span class="string-note">B</span>
-          <span class="string-octave">3</span>
+          <span class="string-octave" data-label="3">3</span>
           <span class="string-num">2e</span>
         </button>
-        <button class="string-btn" onclick="playReference(329.63, this)">
+        <button class="string-btn" data-base="329.63" onclick="playStringRef(this)">
           <span class="string-note">E</span>
-          <span class="string-octave">4</span>
+          <span class="string-octave" data-label="4">4</span>
           <span class="string-num">1re</span>
         </button>
       </div>
@@ -492,14 +567,59 @@
       <p><strong>Référence sonore</strong><br>
       Clique sur une corde (E2, A2, D3…) pour entendre la note de référence pendant 2 secondes. Idéal pour un accordage à l'oreille.</p>
       <p><strong>Accorder une corde</strong><br>
-      Joue la corde, regarde l'aiguille, et tourne la mécanisme jusqu'à ce que l'aiguille soit centrée sur le vert.</p>
+      Joue la corde, regarde l'aiguille, et tourne la mécanique jusqu'à ce que l'aiguille soit centrée sur le vert.</p>
+      <p><strong>Capodastre</strong><br>
+      Sélectionne la case du capo avant d'accorder. Les noms de notes et les références sonores s'ajustent automatiquement — tu vois toujours "E, A, D…" comme si le capo était ton sillet. Accorde toujours le capo posé sur la guitare.</p>
     </div>
   </div>
 
   <script>
     // ─── NOTE NAMES ───
     const NOTE_NAMES = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
-    const NOTE_NAMES_FR = ['Do','Ré','Mi','Fa','Sol','La','Si'];
+
+    // Base open-string frequencies (standard tuning)
+    const BASE_FREQS = [82.41, 110.00, 146.83, 196.00, 246.94, 329.63];
+
+    // ─── CAPO STATE ───
+    let capoFret = 0;
+
+    function setCapo(fret, btn) {
+      capoFret = fret;
+      document.querySelectorAll('.capo-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const badge = document.getElementById('capoActiveBadge');
+      if (fret > 0) {
+        document.getElementById('capoFretLabel').textContent = fret;
+        badge.classList.add('visible');
+      } else {
+        badge.classList.remove('visible');
+      }
+
+      // Update string reference buttons to show capo-shifted notes
+      updateStringButtons();
+    }
+
+    function updateStringButtons() {
+      const btns = document.querySelectorAll('#stringsGrid .string-btn');
+      btns.forEach(btn => {
+        const baseFreq = parseFloat(btn.dataset.base);
+        const shiftedFreq = baseFreq * Math.pow(2, capoFret / 12);
+        const { name, octave } = freqToNote(shiftedFreq);
+        btn.querySelector('.string-note').textContent = name;
+        btn.querySelector('.string-octave').textContent = octave;
+      });
+      document.getElementById('stringsLabel').textContent =
+        capoFret > 0
+          ? `Accordage capo ${capoFret} — cliquer pour entendre`
+          : 'Accordage standard — cliquer pour entendre';
+    }
+
+    function playStringRef(btn) {
+      const baseFreq = parseFloat(btn.dataset.base);
+      const shiftedFreq = baseFreq * Math.pow(2, capoFret / 12);
+      playReference(shiftedFreq, btn);
+    }
 
     // ─── STATE ───
     let audioCtx = null;
@@ -573,13 +693,16 @@
     }
 
     // ─── FREQ → NOTE ───
+    // Returns actual note data. Display name is shifted by capoFret for the main display.
     function freqToNote(freq) {
-      const midi  = 69 + 12 * Math.log2(freq / 440);
-      const midiR = Math.round(midi);
-      const cents = Math.round((midi - midiR) * 100);
-      const name  = NOTE_NAMES[((midiR % 12) + 12) % 12];
-      const octave = Math.floor(midiR / 12) - 1;
-      return { name, octave, cents, midi };
+      const midi   = 69 + 12 * Math.log2(freq / 440);
+      const midiR  = Math.round(midi);
+      const cents  = Math.round((midi - midiR) * 100);
+      // Capo-relative name: subtract capoFret semitones for display
+      const displayMidi = midiR - capoFret;
+      const name   = NOTE_NAMES[((displayMidi % 12) + 12) % 12];
+      const octave = Math.floor(displayMidi / 12) - 1;
+      return { name, octave, cents };
     }
 
     // ─── DISPLAY UPDATE ───
