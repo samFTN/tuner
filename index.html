@@ -236,53 +236,69 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.25);
     }
     .tuner-needle.in-tune { background: var(--green); }
-    .tuner-needle.inactive { opacity: 0.15; }
+    .tuner-needle.inactive { opacity: 0; }
+    .tuner-track.inactive { opacity: 0.2; }
 
-    /* ─── CAPO SELECTOR ─── */
-    .capo-toggle {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0; background: none; border: none;
-      cursor: pointer; font-family: inherit; width: 100%;
-    }
-    .capo-toggle-left {
-      display: flex; align-items: center; gap: 8px;
-    }
-    .capo-toggle-label {
-      font-size: 11px; font-weight: 700; color: var(--muted2); letter-spacing: 0.3px;
-    }
-    .capo-toggle-value {
-      font-size: 11px; font-weight: 700; color: var(--accent);
-      display: none;
-    }
-    .capo-toggle-value.visible { display: inline; }
-    .capo-toggle-chevron {
-      font-size: 10px; color: var(--muted); transition: transform 0.2s ease;
-      line-height: 1;
-    }
-    .capo-toggle.open .capo-toggle-chevron { transform: rotate(180deg); }
+    /* ─── OPTIONS ROW (CAPO + ACCORDAGE) ─── */
+    .options-row { display: flex; gap: 8px; }
+    .option-wrap { position: relative; flex: 1; }
 
-    .capo-drawer {
-      overflow: hidden;
-      max-height: 0;
-      transition: max-height 0.25s ease, opacity 0.2s ease;
-      opacity: 0;
+    .option-trigger {
+      display: flex; align-items: center; gap: 4px;
+      width: 100%; padding: 7px 10px;
+      background: var(--border2); border: 1.5px solid var(--border);
+      border-radius: var(--r-xs);
+      cursor: pointer; font-family: inherit;
+      transition: border-color 0.1s, background 0.1s;
     }
-    .capo-drawer.open {
-      max-height: 60px;
-      opacity: 1;
+    .option-trigger:hover, .option-trigger.open {
+      border-color: var(--accent); background: var(--accent-soft);
     }
-    .capo-btns {
-      display: flex; gap: 4px; flex-wrap: wrap; padding-top: 10px;
+    .option-label  { font-size: 11px; font-weight: 700; color: var(--muted2); white-space: nowrap; }
+    .option-value  { font-size: 11px; font-weight: 700; color: var(--accent); flex: 1; text-align: center; }
+    .option-chevron {
+      font-size: 9px; color: var(--muted);
+      transition: transform 0.2s; margin-left: auto; flex-shrink: 0;
     }
-    .capo-btn {
-      padding: 4px 9px; border-radius: 6px;
-      background: transparent; border: 1.5px solid var(--border);
+    .option-trigger.open .option-chevron { transform: rotate(180deg); }
+
+    .option-panel {
+      display: none; position: absolute;
+      top: calc(100% + 4px); left: 0;
+      min-width: 100%; z-index: 50;
+      background: white; border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
+      padding: 8px;
+    }
+    .option-panel.open { display: block; }
+
+    /* Capo: row of number pills */
+    .capo-panel-btns { display: flex; gap: 4px; }
+    .capo-num-btn {
+      flex: 1; padding: 5px 2px;
+      border-radius: 6px; background: transparent; border: 1.5px solid var(--border);
       cursor: pointer; font-family: inherit;
       font-size: 12px; font-weight: 700; color: var(--muted2);
+      text-align: center;
       transition: background 0.1s, color 0.1s, border-color 0.1s;
     }
-    .capo-btn:hover { background: white; color: var(--dark); }
-    .capo-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+    .capo-num-btn:hover { background: var(--accent-soft); color: var(--dark); border-color: var(--accent); }
+    .capo-num-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+    /* Tuning: vertical list */
+    .tune-option {
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%; padding: 7px 8px; border-radius: 6px;
+      cursor: pointer; font-family: inherit;
+      background: none; border: none; text-align: left;
+      transition: background 0.1s;
+    }
+    .tune-option:hover { background: var(--border2); }
+    .tune-option.active { background: var(--accent-soft); }
+    .tune-name  { font-size: 12px; font-weight: 700; color: var(--dark); }
+    .tune-notes { font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing: 0.5px; }
+    .tune-option.active .tune-name { color: var(--accent); }
 
     /* ─── STRING REFERENCE ─── */
     .strings-section { display: flex; flex-direction: column; gap: 10px; }
@@ -469,27 +485,65 @@
       <span id="errorText">Accès au microphone refusé.</span>
     </div>
 
-    <!-- CAPO SELECTOR -->
-    <div>
-      <button class="capo-toggle" id="capoToggle" onclick="toggleCapoDrawer()">
-        <div class="capo-toggle-left">
-          <span class="capo-toggle-label">Capodastre</span>
-          <span class="capo-toggle-value" id="capoToggleValue"></span>
-        </div>
-        <span class="capo-toggle-chevron">▾</span>
-      </button>
-      <div class="capo-drawer" id="capoDrawer">
-        <div class="capo-btns">
-          <button class="capo-btn active" onclick="setCapo(0, this)">—</button>
-          <button class="capo-btn" onclick="setCapo(1, this)">I</button>
-          <button class="capo-btn" onclick="setCapo(2, this)">II</button>
-          <button class="capo-btn" onclick="setCapo(3, this)">III</button>
-          <button class="capo-btn" onclick="setCapo(4, this)">IV</button>
-          <button class="capo-btn" onclick="setCapo(5, this)">V</button>
-          <button class="capo-btn" onclick="setCapo(6, this)">VI</button>
-          <button class="capo-btn" onclick="setCapo(7, this)">VII</button>
+    <!-- OPTIONS : CAPO + ACCORDAGE -->
+    <div class="options-row">
+
+      <!-- Capo -->
+      <div class="option-wrap">
+        <button class="option-trigger" id="capoTrigger" onclick="toggleOption('capo')">
+          <span class="option-label">Capo</span>
+          <span class="option-value" id="capoValue">—</span>
+          <span class="option-chevron">▾</span>
+        </button>
+        <div class="option-panel" id="capoPanel">
+          <div class="capo-panel-btns">
+            <button class="capo-num-btn active" onclick="setCapo(0, this)">—</button>
+            <button class="capo-num-btn" onclick="setCapo(1, this)">1</button>
+            <button class="capo-num-btn" onclick="setCapo(2, this)">2</button>
+            <button class="capo-num-btn" onclick="setCapo(3, this)">3</button>
+            <button class="capo-num-btn" onclick="setCapo(4, this)">4</button>
+            <button class="capo-num-btn" onclick="setCapo(5, this)">5</button>
+            <button class="capo-num-btn" onclick="setCapo(6, this)">6</button>
+            <button class="capo-num-btn" onclick="setCapo(7, this)">7</button>
+          </div>
         </div>
       </div>
+
+      <!-- Accordage -->
+      <div class="option-wrap">
+        <button class="option-trigger" id="tuningTrigger" onclick="toggleOption('tuning')">
+          <span class="option-label">Accordage</span>
+          <span class="option-value" id="tuningValue">Standard</span>
+          <span class="option-chevron">▾</span>
+        </button>
+        <div class="option-panel" id="tuningPanel">
+          <button class="tune-option active" onclick="setTuning('standard', this)">
+            <span class="tune-name">Standard</span>
+            <span class="tune-notes">E A D G B E</span>
+          </button>
+          <button class="tune-option" onclick="setTuning('dropd', this)">
+            <span class="tune-name">Drop D</span>
+            <span class="tune-notes">D A D G B E</span>
+          </button>
+          <button class="tune-option" onclick="setTuning('halfdown', this)">
+            <span class="tune-name">½ ton bas</span>
+            <span class="tune-notes">E♭ A♭ D♭ G♭ B♭ E♭</span>
+          </button>
+          <button class="tune-option" onclick="setTuning('openg', this)">
+            <span class="tune-name">Open G</span>
+            <span class="tune-notes">D G D G B D</span>
+          </button>
+          <button class="tune-option" onclick="setTuning('opend', this)">
+            <span class="tune-name">Open D</span>
+            <span class="tune-notes">D A D F♯ A D</span>
+          </button>
+          <button class="tune-option" onclick="setTuning('dadgad', this)">
+            <span class="tune-name">DADGAD</span>
+            <span class="tune-notes">D A D G A D</span>
+          </button>
+        </div>
+      </div>
+
     </div>
 
     <!-- STRING REFERENCE -->
@@ -498,32 +552,26 @@
       <div class="strings-grid" id="stringsGrid">
         <button class="string-btn" data-base="82.41" onclick="playStringRef(this)">
           <span class="string-note">E</span>
-          <span class="string-octave" data-label="2">2</span>
           <span class="string-num">6e</span>
         </button>
         <button class="string-btn" data-base="110.00" onclick="playStringRef(this)">
           <span class="string-note">A</span>
-          <span class="string-octave" data-label="2">2</span>
           <span class="string-num">5e</span>
         </button>
         <button class="string-btn" data-base="146.83" onclick="playStringRef(this)">
           <span class="string-note">D</span>
-          <span class="string-octave" data-label="3">3</span>
           <span class="string-num">4e</span>
         </button>
         <button class="string-btn" data-base="196.00" onclick="playStringRef(this)">
           <span class="string-note">G</span>
-          <span class="string-octave" data-label="3">3</span>
           <span class="string-num">3e</span>
         </button>
         <button class="string-btn" data-base="246.94" onclick="playStringRef(this)">
           <span class="string-note">B</span>
-          <span class="string-octave" data-label="3">3</span>
           <span class="string-num">2e</span>
         </button>
         <button class="string-btn" data-base="329.63" onclick="playStringRef(this)">
           <span class="string-note">E</span>
-          <span class="string-octave" data-label="4">4</span>
           <span class="string-num">1re</span>
         </button>
       </div>
@@ -574,43 +622,71 @@
     // Base open-string frequencies (standard tuning)
     const BASE_FREQS = [82.41, 110.00, 146.83, 196.00, 246.94, 329.63];
 
+    // ─── TUNINGS ───
+    const TUNINGS = {
+      standard: { name: 'Standard',  freqs: [82.41, 110.00, 146.83, 196.00, 246.94, 329.63] },
+      dropd:    { name: 'Drop D',    freqs: [73.42, 110.00, 146.83, 196.00, 246.94, 329.63] },
+      halfdown: { name: '½ ton bas', freqs: [77.78, 103.83, 138.59, 185.00, 233.08, 311.13] },
+      openg:    { name: 'Open G',    freqs: [73.42,  98.00, 146.83, 196.00, 246.94, 293.66] },
+      opend:    { name: 'Open D',    freqs: [73.42, 110.00, 146.83, 185.00, 220.00, 293.66] },
+      dadgad:   { name: 'DADGAD',    freqs: [73.42, 110.00, 146.83, 196.00, 220.00, 293.66] },
+    };
+    let currentTuning = 'standard';
+
     // ─── CAPO STATE ───
     let capoFret = 0;
 
-    function toggleCapoDrawer() {
-      const toggle = document.getElementById('capoToggle');
-      const drawer = document.getElementById('capoDrawer');
-      toggle.classList.toggle('open');
-      drawer.classList.toggle('open');
+    // ─── DROPDOWN TOGGLE ───
+    function toggleOption(id) {
+      const trigger = document.getElementById(id + 'Trigger');
+      const panel   = document.getElementById(id + 'Panel');
+      const isOpen  = panel.classList.contains('open');
+      // Ferme tous les panels
+      ['capo', 'tuning'].forEach(k => {
+        document.getElementById(k + 'Panel').classList.remove('open');
+        document.getElementById(k + 'Trigger').classList.remove('open');
+      });
+      if (!isOpen) {
+        panel.classList.add('open');
+        trigger.classList.add('open');
+      }
     }
+    document.addEventListener('click', e => {
+      if (!e.target.closest('.option-wrap')) {
+        ['capo', 'tuning'].forEach(k => {
+          document.getElementById(k + 'Panel').classList.remove('open');
+          document.getElementById(k + 'Trigger').classList.remove('open');
+        });
+      }
+    });
 
     function setCapo(fret, btn) {
       capoFret = fret;
-      document.querySelectorAll('.capo-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.capo-num-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-
-      const val = document.getElementById('capoToggleValue');
-      if (fret > 0) {
-        val.textContent = `case ${fret}`;
-        val.classList.add('visible');
-      } else {
-        val.classList.remove('visible');
-      }
-
+      document.getElementById('capoValue').textContent = fret > 0 ? fret : '—';
       updateStringButtons();
-
-      // Auto-ferme le drawer après sélection
-      document.getElementById('capoToggle').classList.remove('open');
-      document.getElementById('capoDrawer').classList.remove('open');
+      document.getElementById('capoPanel').classList.remove('open');
+      document.getElementById('capoTrigger').classList.remove('open');
     }
 
-    // Raw conversion — no capo offset — used for string reference labels
+    function setTuning(key, btn) {
+      currentTuning = key;
+      const freqs = TUNINGS[key].freqs;
+      const strBtns = document.querySelectorAll('#stringsGrid .string-btn');
+      strBtns.forEach((b, i) => { b.dataset.base = freqs[i]; });
+      document.querySelectorAll('.tune-option').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tuningValue').textContent = TUNINGS[key].name;
+      updateStringButtons();
+      document.getElementById('tuningPanel').classList.remove('open');
+      document.getElementById('tuningTrigger').classList.remove('open');
+    }
+
+    // Raw note conversion (no capo offset) — for string reference labels
     function freqToNoteName(freq) {
       const midi = Math.round(69 + 12 * Math.log2(freq / 440));
-      return {
-        name:   NOTE_NAMES[((midi % 12) + 12) % 12],
-        octave: Math.floor(midi / 12) - 1
-      };
+      return { name: NOTE_NAMES[((midi % 12) + 12) % 12] };
     }
 
     function updateStringButtons() {
@@ -618,18 +694,12 @@
       btns.forEach(btn => {
         const baseFreq    = parseFloat(btn.dataset.base);
         const shiftedFreq = baseFreq * Math.pow(2, capoFret / 12);
-        const { name, octave } = freqToNoteName(shiftedFreq);
-        btn.querySelector('.string-note').textContent   = name;
-        btn.querySelector('.string-octave').textContent = octave;
+        btn.querySelector('.string-note').textContent = freqToNoteName(shiftedFreq).name;
       });
-      document.getElementById('stringsLabel').textContent =
-        capoFret > 0
-          ? `Capo case ${capoFret} — cliquer pour entendre`
-          : 'Accordage standard — cliquer pour entendre';
     }
 
     function playStringRef(btn) {
-      const baseFreq = parseFloat(btn.dataset.base);
+      const baseFreq    = parseFloat(btn.dataset.base);
       const shiftedFreq = baseFreq * Math.pow(2, capoFret / 12);
       playReference(shiftedFreq, btn);
     }
@@ -736,10 +806,12 @@
         centsEl.textContent  = '–';
         needle.className     = 'tuner-needle inactive';
         needle.style.left    = '50%';
+        document.querySelector('.tuner-track').classList.add('inactive');
         pill.className       = 'status-pill listening';
         pillTxt.textContent  = 'Écoute…';
         return;
       }
+      document.querySelector('.tuner-track').classList.remove('inactive');
 
       const { name, octave, cents } = freqToNote(freq);
       const inTune = Math.abs(cents) <= 5;
@@ -863,6 +935,7 @@
       document.getElementById('statusText').textContent = 'Inactif';
       document.getElementById('tunerNeedle').className = 'tuner-needle inactive';
       document.getElementById('tunerNeedle').style.left = '50%';
+      document.querySelector('.tuner-track').classList.add('inactive');
       document.getElementById('noteName').textContent = '–';
       document.getElementById('noteName').className = 'note-name empty';
       document.getElementById('noteOctave').textContent = '';
