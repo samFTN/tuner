@@ -874,8 +874,8 @@
       // ── Fondu (chaque frame, 60 fps) ──────────────────────────
       if (smoothFreq > 0) {
         const elapsed = timestamp - lastSignalTime;
-        if (elapsed >= 400) {
-          const t = Math.min((elapsed - 400) / 800, 1);
+        if (elapsed >= 800) {
+          const t = Math.min((elapsed - 800) / 800, 1);
           setDisplayOpacity(1 - t * 0.95);
           if (t >= 1) {
             setDisplayOpacity(1);
