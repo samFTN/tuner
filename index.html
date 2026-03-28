@@ -810,13 +810,27 @@
         pill.className       = 'status-pill listening';
         pillTxt.textContent  = 'Écoute…';
         wasInTune = false;
+        clearTimeout(inTuneTimer);
+        inTuneTimer = null;
         return;
       }
       document.querySelector('.tuner-track').classList.remove('inactive');
 
       const { name, octave, cents } = freqToNote(freq);
       const inTune = Math.abs(cents) <= 5;
-      if (inTune && !wasInTune) playInTuneChime();
+      if (inTune && !wasInTune) {
+        // Démarre le timer de confirmation si pas déjà en cours
+        if (!inTuneTimer) {
+          inTuneTimer = setTimeout(() => {
+            inTuneTimer = null;
+            if (wasInTune) playInTuneChime();
+          }, IN_TUNE_CONFIRM_MS);
+        }
+      } else if (!inTune) {
+        // Sort de la zone → annule le timer
+        clearTimeout(inTuneTimer);
+        inTuneTimer = null;
+      }
       wasInTune = inTune;
 
       // Note name
@@ -953,6 +967,8 @@
     // ─── IN-TUNE CHIME ───
     let wasInTune = false;
     let lastChimeTime = 0;
+    let inTuneTimer = null;
+    const IN_TUNE_CONFIRM_MS = 700; // doit rester accordé pendant ce délai avant de sonner
 
     function playInTuneChime() {
       const now = Date.now();
