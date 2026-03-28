@@ -239,37 +239,29 @@
     .tuner-needle.inactive { opacity: 0.15; }
 
     /* ─── CAPO SELECTOR ─── */
-    .capo-section { display: flex; flex-direction: column; gap: 10px; }
-    .capo-label {
-      font-size: 10px; font-weight: 700; letter-spacing: 2px;
-      text-transform: uppercase; color: var(--muted); text-align: center;
+    .capo-section {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: var(--r-sm);
+      background: var(--border2); border: 1.5px solid var(--border);
     }
-    .capo-grid {
-      display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px;
+    .capo-label {
+      font-size: 11px; font-weight: 700; color: var(--muted2);
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .capo-btns {
+      display: flex; gap: 4px; flex-wrap: wrap;
     }
     .capo-btn {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 8px 4px; border-radius: var(--r-sm);
-      background: var(--border2); border: 1.5px solid var(--border);
+      padding: 4px 8px; border-radius: 6px;
+      background: transparent; border: 1.5px solid transparent;
       cursor: pointer; font-family: inherit;
-      font-size: 13px; font-weight: 700; color: var(--dark);
-      transition: background 0.12s, border-color 0.12s, transform 0.08s;
+      font-size: 12px; font-weight: 700; color: var(--muted2);
+      transition: background 0.1s, color 0.1s, border-color 0.1s;
     }
-    .capo-btn:hover { background: var(--accent-soft); border-color: var(--accent); transform: translateY(-1px); }
-    .capo-btn:active { transform: translateY(0); }
+    .capo-btn:hover { background: white; color: var(--dark); border-color: var(--border); }
     .capo-btn.active {
       background: var(--accent); border-color: var(--accent); color: white;
     }
-    .capo-btn .capo-sub {
-      font-size: 9px; font-weight: 600; color: inherit; opacity: 0.7; margin-top: 2px;
-    }
-    .capo-active-badge {
-      display: none; align-items: center; justify-content: center; gap: 6px;
-      padding: 6px 12px; border-radius: 20px;
-      background: var(--accent-soft); border: 1.5px solid var(--accent);
-      font-size: 11px; font-weight: 700; color: var(--accent);
-    }
-    .capo-active-badge.visible { display: flex; }
 
     /* ─── STRING REFERENCE ─── */
     .strings-section { display: flex; flex-direction: column; gap: 10px; }
@@ -458,43 +450,16 @@
 
     <!-- CAPO SELECTOR -->
     <div class="capo-section">
-      <div class="capo-label">Capodastre</div>
-      <div class="capo-grid">
-        <button class="capo-btn active" onclick="setCapo(0, this)">
-          <span>—</span>
-          <span class="capo-sub">sans</span>
-        </button>
-        <button class="capo-btn" onclick="setCapo(1, this)">
-          <span>I</span>
-          <span class="capo-sub">case</span>
-        </button>
-        <button class="capo-btn" onclick="setCapo(2, this)">
-          <span>II</span>
-          <span class="capo-sub">case</span>
-        </button>
-        <button class="capo-btn" onclick="setCapo(3, this)">
-          <span>III</span>
-          <span class="capo-sub">case</span>
-        </button>
-        <button class="capo-btn" onclick="setCapo(4, this)">
-          <span>IV</span>
-          <span class="capo-sub">case</span>
-        </button>
-        <button class="capo-btn" onclick="setCapo(5, this)">
-          <span>V</span>
-          <span class="capo-sub">case</span>
-        </button>
-        <button class="capo-btn" onclick="setCapo(6, this)">
-          <span>VI</span>
-          <span class="capo-sub">case</span>
-        </button>
-        <button class="capo-btn" onclick="setCapo(7, this)">
-          <span>VII</span>
-          <span class="capo-sub">case</span>
-        </button>
-      </div>
-      <div class="capo-active-badge" id="capoActiveBadge">
-        🎸 Capo case <span id="capoFretLabel"></span> — notes transposées
+      <span class="capo-label">Capo</span>
+      <div class="capo-btns">
+        <button class="capo-btn active" onclick="setCapo(0, this)">—</button>
+        <button class="capo-btn" onclick="setCapo(1, this)">I</button>
+        <button class="capo-btn" onclick="setCapo(2, this)">II</button>
+        <button class="capo-btn" onclick="setCapo(3, this)">III</button>
+        <button class="capo-btn" onclick="setCapo(4, this)">IV</button>
+        <button class="capo-btn" onclick="setCapo(5, this)">V</button>
+        <button class="capo-btn" onclick="setCapo(6, this)">VI</button>
+        <button class="capo-btn" onclick="setCapo(7, this)">VII</button>
       </div>
     </div>
 
@@ -587,31 +552,30 @@
       capoFret = fret;
       document.querySelectorAll('.capo-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-
-      const badge = document.getElementById('capoActiveBadge');
-      if (fret > 0) {
-        document.getElementById('capoFretLabel').textContent = fret;
-        badge.classList.add('visible');
-      } else {
-        badge.classList.remove('visible');
-      }
-
-      // Update string reference buttons to show capo-shifted notes
       updateStringButtons();
+    }
+
+    // Raw conversion — no capo offset — used for string reference labels
+    function freqToNoteName(freq) {
+      const midi = Math.round(69 + 12 * Math.log2(freq / 440));
+      return {
+        name:   NOTE_NAMES[((midi % 12) + 12) % 12],
+        octave: Math.floor(midi / 12) - 1
+      };
     }
 
     function updateStringButtons() {
       const btns = document.querySelectorAll('#stringsGrid .string-btn');
       btns.forEach(btn => {
-        const baseFreq = parseFloat(btn.dataset.base);
+        const baseFreq    = parseFloat(btn.dataset.base);
         const shiftedFreq = baseFreq * Math.pow(2, capoFret / 12);
-        const { name, octave } = freqToNote(shiftedFreq);
-        btn.querySelector('.string-note').textContent = name;
+        const { name, octave } = freqToNoteName(shiftedFreq);
+        btn.querySelector('.string-note').textContent   = name;
         btn.querySelector('.string-octave').textContent = octave;
       });
       document.getElementById('stringsLabel').textContent =
         capoFret > 0
-          ? `Accordage capo ${capoFret} — cliquer pour entendre`
+          ? `Capo case ${capoFret} — cliquer pour entendre`
           : 'Accordage standard — cliquer pour entendre';
     }
 
