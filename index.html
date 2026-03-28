@@ -862,7 +862,13 @@
     }
 
     // ─── ANIMATION LOOP ───
-    let bufferData = null;
+    let bufferData    = null;
+    let lastSignalTime = 0;
+
+    function setDisplayOpacity(v) {
+      document.querySelector('.note-display').style.opacity   = v;
+      document.querySelector('.tuner-indicator').style.opacity = v;
+    }
 
     function animate(timestamp) {
       if (!isRunning) return;
@@ -878,14 +884,31 @@
       if (freq > 0) {
         if (smoothFreq > 0) {
           // Ignore les sauts > 80 cents (harmoniques parasites)
-          const cents = Math.abs(1200 * Math.log2(freq / smoothFreq));
-          if (cents > 80) return;
+          const jump = Math.abs(1200 * Math.log2(freq / smoothFreq));
+          if (jump > 80) return;
         }
+        lastSignalTime = timestamp;
         smoothFreq = smoothFreq < 0 ? freq : SMOOTH * smoothFreq + (1 - SMOOTH) * freq;
+        setDisplayOpacity(1);
         updateDisplay(smoothFreq);
-      } else {
-        smoothFreq = -1;
-        updateDisplay(-1);
+      } else if (smoothFreq > 0) {
+        // Signal perdu — hold puis fade progressif
+        const elapsed = timestamp - lastSignalTime;
+        if (elapsed < 400) {
+          // Maintien pleine opacité 400 ms
+          setDisplayOpacity(1);
+        } else if (elapsed < 1200) {
+          // Fondu sur 800 ms
+          setDisplayOpacity(1 - ((elapsed - 400) / 800) * 0.95);
+        } else {
+          // Effacement final
+          setDisplayOpacity(1);
+          smoothFreq = -1;
+          wasInTune  = false;
+          clearTimeout(inTuneTimer);
+          inTuneTimer = null;
+          updateDisplay(-1);
+        }
       }
     }
 
